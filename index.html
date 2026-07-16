@@ -396,6 +396,24 @@
         font-family: "IBM Plex Mono", monospace;
         color: var(--amber);
       }
+      .warning-box {
+        display: flex;
+        align-items: flex-start;
+        gap: 8px;
+        margin-top: 10px;
+        background: rgba(193, 80, 46, 0.22);
+        border: 1px solid var(--red);
+        border-radius: 10px;
+        padding: 10px 12px;
+        font-size: 13px;
+        font-weight: 600;
+        color: #ffdcc9;
+      }
+      .warning-box .icon {
+        font-size: 15px;
+        flex: none;
+        line-height: 1.3;
+      }
       .sheet-actions {
         display: flex;
         gap: 10px;
@@ -1034,7 +1052,7 @@
         <label>Número de telemóvel</label>
         <input id="phone-input" inputmode="tel" placeholder="ex: 912 345 678" value="${phone}">
       </div>
-      ${authError ? `<p style="color:var(--red);font-size:13px;margin:0;max-width:300px;">${authError}</p>` : ""}
+      ${authError ? `<div class="warning-box" style="max-width:300px;"><span class="icon">⚠️</span><span>${authError}</span></div>` : ""}
       <button class="btn-primary" id="phone-submit" style="width:100%;max-width:300px;padding:15px 30px;" ${checkingAuth ? "disabled" : ""}>${checkingAuth ? "A verificar..." : "Entrar"}</button>
     </div>
   `;
@@ -1142,6 +1160,9 @@
             showSummary = true;
             render();
           };
+        const activeCatBtn = document.querySelector(".cat-btn.active");
+        if (activeCatBtn)
+          activeCatBtn.scrollIntoView({ inline: "center", block: "nearest" });
 
         renderMyOrders();
         startMyOrdersPolling();
@@ -1218,7 +1239,7 @@
           <button class="btn-secondary" id="cancel-btn">Voltar</button>
           <button class="btn-primary" id="confirm-btn" ${!mesa ? 'disabled title="Indica a mesa"' : ""}>Enviar pedido</button>
         </div>
-        ${!mesa ? '<p style="color:var(--red);font-size:12px;margin-top:8px;">Indica o número da mesa antes de enviar.</p>' : ""}
+        ${!mesa ? '<div class="warning-box"><span class="icon">⚠️</span><span>Indica o número da mesa antes de enviar.</span></div>' : ""}
       </div>
     </div>
   `;
