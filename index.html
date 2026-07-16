@@ -14,7 +14,7 @@
 <meta name="apple-mobile-web-app-title" content="Núcleo Sportinguista">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#0C2B1B">
-<link rel="manifest" href="manifest.json">
+<link rel="manifest" id="app-manifest" href="manifest.json">
 <style>
   :root{
     --bg: #0C2B1B;
@@ -280,6 +280,29 @@ const API_BASE = 'https://script.google.com/macros/s/AKfycbyujWE0xxNi4HyV7uOt9J4
 // Link do balcão: abrir esta app com ?balcao=1 no fim do URL dá acesso direto
 // à vista de pedidos, sem passar pela autenticação de sócio.
 const isStaffLink = new URLSearchParams(window.location.search).get('balcao') === '1';
+
+// O manifest.json estático não sabe se isto é o link do balcão ou dos sócios.
+// Substituímo-lo por um gerado na hora, com o URL exato desta página como
+// start_url — assim o ícone instalado abre sempre no sítio certo.
+(function setupManifest(){
+  try{
+    const manifest = {
+      name: isStaffLink ? 'Núcleo Sportinguista — Balcão' : 'Núcleo Sportinguista de Viseu',
+      short_name: isStaffLink ? 'Balcão' : 'Núcleo Sportinguista',
+      start_url: window.location.href,
+      id: window.location.href,
+      display: 'standalone',
+      background_color: '#0C2B1B',
+      theme_color: '#0C2B1B',
+      icons: [
+        { src: 'https://raw.githubusercontent.com/slayer71096/nucleo-sportinguista-assets/main/icone-leao-192.png', sizes: '192x192', type: 'image/png' },
+        { src: 'https://raw.githubusercontent.com/slayer71096/nucleo-sportinguista-assets/main/icone-leao-512.png', sizes: '512x512', type: 'image/png' }
+      ]
+    };
+    const blob = new Blob([JSON.stringify(manifest)], {type:'application/manifest+json'});
+    document.getElementById('app-manifest').href = URL.createObjectURL(blob);
+  }catch(e){ console.error('Erro a configurar manifest', e); }
+})();
 
 let authenticated = false;
 let phone = '';
