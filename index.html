@@ -51,6 +51,7 @@
         padding: 0;
         overflow-x: hidden;
         max-width: 100vw;
+        touch-action: manipulation;
       }
       body {
         background: var(--bg);
@@ -710,6 +711,9 @@
         padding: 12px;
         font-size: 13.5px;
         font-weight: 700;
+      }
+      .advance-btn:disabled {
+        opacity: 0.55;
       }
       .advance-btn.ready {
         background: var(--amber);
@@ -1399,12 +1403,24 @@
     `
     }
   `;
-        document
-          .querySelectorAll("[data-advance]")
-          .forEach((b) => (b.onclick = () => advanceStatus(b.dataset.advance)));
-        document
-          .querySelectorAll("[data-paid]")
-          .forEach((b) => (b.onclick = () => markPaid(b.dataset.paid)));
+        document.querySelectorAll("[data-advance]").forEach(
+          (b) =>
+            (b.onclick = () => {
+              if (b.disabled) return;
+              b.disabled = true;
+              b.textContent = "A atualizar...";
+              advanceStatus(b.dataset.advance);
+            }),
+        );
+        document.querySelectorAll("[data-paid]").forEach(
+          (b) =>
+            (b.onclick = () => {
+              if (b.disabled) return;
+              b.disabled = true;
+              b.textContent = "A fechar conta...";
+              markPaid(b.dataset.paid);
+            }),
+        );
 
         const linkInput = document.getElementById("link-input");
         linkInput.oninput = () => {
