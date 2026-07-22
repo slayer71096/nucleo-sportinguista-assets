@@ -518,24 +518,31 @@
 
       .board {
         display: flex;
-        gap: 14px;
-        padding: 6px 18px 30px;
-        align-items: flex-start;
-        overflow-x: auto;
-        -webkit-overflow-scrolling: touch;
-      }
-      .board-col {
-        flex: 1 1 260px;
-        min-width: 260px;
-        max-width: 420px;
+        margin: 6px 18px 30px;
+        align-items: stretch;
         background: var(--bg-panel);
         border: 1px solid var(--line);
         border-radius: var(--radius);
+        overflow: hidden;
+      }
+      .board-col {
+        flex: 1 1 0;
+        min-width: 0;
         display: flex;
         flex-direction: column;
         max-height: calc(100vh - 190px);
         min-height: 180px;
         border-top: 4px solid var(--line);
+        transition: flex-basis 0.2s ease;
+      }
+      .board-col + .board-col {
+        border-left: 1px solid var(--line);
+      }
+      .board-col.collapsed {
+        flex: 1 1 0;
+      }
+      .board-col.collapsed .board-col-body {
+        display: none;
       }
       .board-col.col-novo {
         border-top-color: #e8845f;
@@ -568,9 +575,29 @@
         font-size: 15px;
         position: sticky;
         top: 0;
+        cursor: pointer;
+        user-select: none;
         background: var(--bg-panel);
-        border-radius: 11px 11px 0 0;
         flex: none;
+        gap: 10px;
+      }
+      .board-col.collapsed .board-col-head {
+        border-bottom: none;
+      }
+      .board-col-head .chevron {
+        color: var(--muted);
+        font-size: 13px;
+        transition: transform 0.15s;
+        flex: none;
+      }
+      .board-col.collapsed .board-col-head .chevron {
+        transform: rotate(-90deg);
+      }
+      .board-col-head .head-label {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        overflow: hidden;
       }
       .board-count {
         background: var(--bg-panel-2);
@@ -579,6 +606,7 @@
         padding: 2px 10px;
         font-size: 12.5px;
         font-family: "IBM Plex Mono", monospace;
+        flex: none;
       }
       .board-col-body {
         padding: 12px;
@@ -597,11 +625,14 @@
       @media (max-width: 699px) {
         .board {
           flex-direction: column;
-          overflow-x: visible;
         }
         .board-col {
           max-width: none;
           max-height: none;
+        }
+        .board-col + .board-col {
+          border-left: none;
+          border-top: 1px solid var(--line);
         }
       }
 
@@ -880,6 +911,8 @@
       let staffLink = window.location.origin + window.location.pathname;
       let qrPanelOpen = false;
       let lastStaffSnapshot = "";
+      let pedidosCollapsed = false;
+      let contasCollapsed = false;
 
       const app = document.getElementById("app");
       if (isStaffLink) app.classList.add("staff-mode");
@@ -1381,18 +1414,18 @@
     `
         : `
       <div class="board">
-        <div class="board-col col-novo">
-          <div class="board-col-head">
-            <span>Pedidos</span>
+        <div class="board-col col-novo ${pedidosCollapsed ? "collapsed" : ""}" id="col-pedidos">
+          <div class="board-col-head" id="head-pedidos">
+            <span class="head-label"><span class="chevron">▾</span>Pedidos</span>
             <span class="board-count">${pending.length}</span>
           </div>
           <div class="board-col-body">
             ${pending.length ? pending.map(pendingTicketHtml).join("") : `<div class="board-empty">Sem pedidos</div>`}
           </div>
         </div>
-        <div class="board-col col-contas">
-          <div class="board-col-head">
-            <span>Contas em Aberto</span>
+        <div class="board-col col-contas ${contasCollapsed ? "collapsed" : ""}" id="col-contas">
+          <div class="board-col-head" id="head-contas">
+            <span class="head-label"><span class="chevron">▾</span>Contas em Aberto</span>
             <span class="board-count">${tabs.length}</span>
           </div>
           <div class="board-col-body">
@@ -1403,6 +1436,20 @@
     `
     }
   `;
+        document.getElementById("head-pedidos") &&
+          (document.getElementById("head-pedidos").onclick = () => {
+            pedidosCollapsed = !pedidosCollapsed;
+            document
+              .getElementById("col-pedidos")
+              .classList.toggle("collapsed", pedidosCollapsed);
+          });
+        document.getElementById("head-contas") &&
+          (document.getElementById("head-contas").onclick = () => {
+            contasCollapsed = !contasCollapsed;
+            document
+              .getElementById("col-contas")
+              .classList.toggle("collapsed", contasCollapsed);
+          });
         document.querySelectorAll("[data-advance]").forEach(
           (b) =>
             (b.onclick = () => {
