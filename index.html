@@ -660,6 +660,26 @@
         align-items: flex-start;
         margin-bottom: 8px;
       }
+      .ticket-toggle {
+        cursor: pointer;
+        user-select: none;
+      }
+      .ticket-toggle .chevron {
+        color: var(--muted);
+        font-size: 12px;
+        flex: none;
+        margin-top: 3px;
+        transition: transform 0.15s;
+      }
+      .ticket-collapsed .ticket-toggle .chevron {
+        transform: rotate(-90deg);
+      }
+      .ticket-collapsed .ticket-head {
+        margin-bottom: 0;
+      }
+      .ticket-collapsed .ticket-body {
+        display: none;
+      }
       .mesa-tag {
         font-size: 20px;
         font-weight: 700;
@@ -913,6 +933,7 @@
       let lastStaffSnapshot = "";
       let pedidosCollapsed = false;
       let contasCollapsed = false;
+      let collapsedTickets = {};
 
       const app = document.getElementById("app");
       if (isStaffLink) app.classList.add("staff-mode");
@@ -1364,29 +1385,35 @@
         const tabs = Object.values(tabsMap);
 
         const pendingTicketHtml = (o) => `
-    <div class="ticket">
-      <div class="ticket-head">
+    <div class="ticket ${collapsedTickets["o-" + o.id] ? "ticket-collapsed" : ""}" id="ticket-o-${o.id}">
+      <div class="ticket-head ticket-toggle" data-toggle="o-${o.id}">
         <div>
           <span class="mesa-tag">Mesa ${o.mesa}</span>
           ${o.memberName ? `<div class="member-name">${o.memberName}</div>` : ""}
         </div>
+        <span class="chevron">▾</span>
       </div>
-      <div class="ticket-items">${o.items.map((i) => `<div><span class="qty">${i.qty}×</span>${i.name}</div>`).join("")}</div>
-      <div class="ticket-foot">
-        <button class="advance-btn" data-advance="${o.id}">Entregue →</button>
+      <div class="ticket-body">
+        <div class="ticket-items">${o.items.map((i) => `<div><span class="qty">${i.qty}×</span>${i.name}</div>`).join("")}</div>
+        <div class="ticket-foot">
+          <button class="advance-btn" data-advance="${o.id}">Entregue →</button>
+        </div>
       </div>
     </div>
   `;
 
         const tabHtml = (t) => `
-    <div class="ticket">
-      <div class="ticket-head">
+    <div class="ticket ${collapsedTickets["t-" + t.phone] ? "ticket-collapsed" : ""}" id="ticket-t-${t.phone}">
+      <div class="ticket-head ticket-toggle" data-toggle="t-${t.phone}">
         <div class="member-name" style="font-size:16px;">${t.name}</div>
+        <span class="chevron">▾</span>
       </div>
-      <div class="ticket-items">${t.lines.map((i) => `<div style="display:flex;justify-content:space-between;"><span><span class="qty">${i.qty}×</span>${i.name}</span><span class="mono">${euros(i.price)}</span></div>`).join("")}</div>
-      <div class="tab-total">Total: <span>${euros(t.total)}</span></div>
-      <div class="ticket-foot">
-        <button class="advance-btn ready" data-paid="${t.phone}">✓ Pago</button>
+      <div class="ticket-body">
+        <div class="ticket-items">${t.lines.map((i) => `<div style="display:flex;justify-content:space-between;"><span><span class="qty">${i.qty}×</span>${i.name}</span><span class="mono">${euros(i.price)}</span></div>`).join("")}</div>
+        <div class="tab-total">Total: <span>${euros(t.total)}</span></div>
+        <div class="ticket-foot">
+          <button class="advance-btn ready" data-paid="${t.phone}">✓ Pago</button>
+        </div>
       </div>
     </div>
   `;
@@ -1450,6 +1477,17 @@
               .getElementById("col-contas")
               .classList.toggle("collapsed", contasCollapsed);
           });
+        document.querySelectorAll("[data-toggle]").forEach(
+          (h) =>
+            (h.onclick = (ev) => {
+              if (ev.target.closest("[data-advance],[data-paid]")) return;
+              const key = h.dataset.toggle;
+              collapsedTickets[key] = !collapsedTickets[key];
+              document
+                .getElementById("ticket-" + key)
+                .classList.toggle("ticket-collapsed", collapsedTickets[key]);
+            }),
+        );
         document.querySelectorAll("[data-advance]").forEach(
           (b) =>
             (b.onclick = () => {
